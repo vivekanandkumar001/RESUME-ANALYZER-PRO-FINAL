@@ -14,7 +14,7 @@ st.set_page_config(
 # --- GOOGLE SEARCH CONSOLE VERIFICATION ---
 # Google se copy kiya hua apna poora meta tag yahaan paste karein
 google_verification_tag = """
-<meta name="google-site-verification" content="_hMaRXQjxX-9p5fcd2fXqq0pnZgI8J-1U3j29avVOgE" />
+<meta name="<meta name="google-site-verification" content="_hMaRXQjxX-9p5fcd2fXqq0pnZgI8J-1U3j29avVOgE" />" />
 """
 st.markdown(google_verification_tag, unsafe_allow_html=True)
 # ------------------------------------------
