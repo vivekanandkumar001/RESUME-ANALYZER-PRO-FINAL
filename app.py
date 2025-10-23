@@ -11,6 +11,15 @@ st.set_page_config(
     page_icon="🧠"
 )
 
+# --- GOOGLE SEARCH CONSOLE VERIFICATION ---
+# Google se copy kiya hua apna poora meta tag yahaan paste karein
+google_verification_tag = """
+<meta name="google-site-verification" content="_hMaRXQjxX-9p5fcd2fXqq0pnZgI8J-1U3j29avVOgE" />
+"""
+st.markdown(google_verification_tag, unsafe_allow_html=True)
+# ------------------------------------------
+
+
 # -------------------- CUSTOM CSS (HYDRANGEA TWILIGHT THEME) --------------------
 st.markdown(
     """
@@ -18,7 +27,6 @@ st.markdown(
     /* Base Body Styling (Hydrangea Dark Gradient) */
     body {
         /* Deep Blue to Dark Purple/Pink Gradient */
-        /* YEH AAPKA BACKGROUND COLOR CHANGE KAREGA */
         background: linear-gradient(135deg, #0f0c29 0%, #302b63 70%, #24243e 100%);
         background-attachment: fixed;
         color: #d1d1d1; /* Soft light grey text */
@@ -33,7 +41,6 @@ st.markdown(
     
     /* Override Streamlit's main app background */
     [data-testid="stAppViewContainer"] > .main {
-        /* YEH BHI BACKGROUND KO TRANSPARENT KARTA HAI */
         background: none;
     }
 
