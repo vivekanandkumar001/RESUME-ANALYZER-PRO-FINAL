@@ -6,15 +6,22 @@ import urllib.parse # Import for creating safe URL links
 
 # -------------------- PAGE CONFIG --------------------
 st.set_page_config(
-    page_title="Smart Resume Analyzer 🧠",
+    page_title="Progeni - Smart Resume Analyzer", # Title update kiya
     layout="wide",
-    page_icon="🧠"
+    
+    # --- YAHAN APNA LOGO URL DAALEIN ---
+    # 1. Apni logo file (jaise logo.png) ko GitHub par upload karein.
+    # 2. Uska "Raw" URL copy karein.
+    # 3. Neeche diye gaye URL ko uss link se replace kar dein.
+    page_icon="https://raw.githubusercontent.com/vivekanandkumar001/RESUME-ANALYZER-PRO-FINAL/main/logo.png" # <-- YAHAN PASTE KAREIN
 )
+# ---------------------------------------------------
+
 
 # --- GOOGLE SEARCH CONSOLE VERIFICATION ---
 # Google se copy kiya hua apna poora meta tag yahaan paste karein
 google_verification_tag = """
-<meta name="google-site-verification" content="_hMaRXQjxX-9p5fcd2fXqq0pnZgI8J-1U3j29avVOgE" />
+<meta name="google-site-verification" content="KOI_NAYA_SA_CODE_YAHAN_HOGA" />
 """
 st.markdown(google_verification_tag, unsafe_allow_html=True)
 # ------------------------------------------
@@ -176,7 +183,7 @@ st.markdown(
 )
 
 # -------------------- APP TITLE --------------------
-st.title("🧠 Smart Resume Analyzer & Job Matcher")
+st.title("🧠 Progeni: Smart Resume Analyzer") # Title bhi update kiya
 st.subheader("Upload your resume to instantly find matching jobs, get improvement tips, and edit your resume.")
 
 # -------------------- FILE UPLOAD --------------------
