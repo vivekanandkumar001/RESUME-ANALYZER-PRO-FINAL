@@ -6,14 +6,9 @@ import urllib.parse # Import for creating safe URL links
 
 # -------------------- PAGE CONFIG --------------------
 st.set_page_config(
-    page_title="Progeni - Smart Resume Analyzer", # Title update kiya
+    page_title="Progeni - Smart Resume Analyzer", 
     layout="wide",
-    
-    # --- YAHAN APNA LOGO URL DAALEIN ---
-    # 1. Apni logo file (jaise logo.png) ko GitHub par upload karein.
-    # 2. Uska "Raw" URL copy karein.
-    # 3. Neeche diye gaye URL ko uss link se replace kar dein.
-    page_icon="https://raw.githubusercontent.com/vivekanandkumar001/RESUME-ANALYZER-PRO-FINAL/main/logo.png" # <-- YAHAN PASTE KAREIN
+    page_icon="https://raw.githubusercontent.com/vivekanandkumar001/RESUME-ANALYZER-PRO-FINAL/main/logo.png" 
 )
 # ---------------------------------------------------
 
@@ -61,19 +56,15 @@ st.markdown(
         border: 1px solid #4a476a; /* Lighter purple border */
     }
     
-    /* Title and Subheader */
-    .st-emotion-cache-10trblm { /* Main title */
-        font-size: 2.75rem;
-        color: #ffffff;
-        font-weight: 700;
-        text-align: center;
+    /* Hide default Streamlit title */
+    .st-emotion-cache-10trblm {
+        display: none;
     }
-    .st-emotion-cache-1q8du0e { /* Subheader */
-        font-size: 1.15rem;
-        color: #adb5bd;
-        text-align: center;
-        margin-bottom: 2rem;
+    /* Hide default Streamlit subheader */
+    .st-emotion-cache-1q8du0e {
+        display: none;
     }
+
 
     /* Progress Bar */
     .stProgress > div > div > div > div {
@@ -182,9 +173,25 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-# -------------------- APP TITLE --------------------
-st.title("🧠 Progeni: Smart Resume Analyzer") # Title bhi update kiya
-st.subheader("Upload your resume to instantly find matching jobs, get improvement tips, and edit your resume.")
+# -------------------- APP TITLE (CUSTOM HTML) --------------------
+LOGO_URL = "https://raw.githubusercontent.com/vivekanandkumar001/RESUME-ANALYZER-PRO-FINAL/main/logo.png"
+
+st.markdown(
+    f"""
+    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 0px;">
+        <img src="{LOGO_URL}" style="height: 60px; margin-right: 15px;">
+        <h1 style="font-size: 2.75rem; color: #ffffff; font-weight: 700; margin: 0;">
+            Progeni: Smart Resume Analyzer
+        </h1>
+    </div>
+    <p style="font-size: 1.15rem; color: #adb5bd; text-align: center; margin-bottom: 2rem;">
+        Upload your resume to instantly find matching jobs, get improvement tips, and edit your resume.
+    </p>
+    """,
+    unsafe_allow_html=True
+)
+# ---------------------------------------------------
+
 
 # -------------------- FILE UPLOAD --------------------
 uploaded_resume = st.file_uploader("📄 **Upload your Resume** (PDF, DOCX, or TXT)", type=["pdf", "docx", "txt"])
