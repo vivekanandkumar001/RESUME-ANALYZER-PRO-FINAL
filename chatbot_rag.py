@@ -1,5 +1,5 @@
 # chatbot_rag.py
-from chatbot_config import INTERVIEWER_SYSTEM_PROMPT, GEMINI_MODEL, GEMINI_API_KEY
+from chatbot_config import INTERVIEWER_SYSTEM_PROMPT, GEMINI_MODEL
 from langchain_google_genai import ChatGoogleGenerativeAI 
 from langchain_core.messages import HumanMessage, SystemMessage 
 import streamlit as st
@@ -8,6 +8,8 @@ import os
 # --- Initialize LLM LAZILY (Gemini ONLY) ---
 @st.cache_resource
 def load_llm_model():
+    """Loads the Gemini model, prioritizing st.secrets."""
+    # Safely retrieve key from st.secrets (which loads from secrets.toml on Cloud)
     gemini_key = st.secrets.get("GEMINI_API_KEY")
 
     if not gemini_key:
@@ -20,6 +22,7 @@ def load_llm_model():
             api_key=gemini_key,
             temperature=0.6 
         )
+        print("✅ Gemini Model initialized successfully.")
         return llm_instance
     except Exception as e:
         error_message = f"❌ Failed to initialize Gemini model. Error: {e}"
@@ -34,7 +37,8 @@ def initialize_interview(resume_text: str) -> str | None:
     
     # --- FIX: Check if resume text is actually present ---
     if not resume_text or len(resume_text.strip()) < 50:
-         st.error("Error: Resume text is empty or too short. Please upload a valid resume in the Analyzer tab.")
+         # If resume is missing, we must NOT call the API, as the API requires content.
+         st.error("Error: Resume text is empty or too short. Cannot start interview.")
          return None
     # ----------------------------------------------------
 
