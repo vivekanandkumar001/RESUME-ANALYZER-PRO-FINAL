@@ -5,7 +5,7 @@ import os
 ROOT = Path(__file__).resolve().parent.parent
 
 # --- GEMINI CONFIG (For Cloud Interview) ---
-GEMINI_API_KEY = os.getenv("AIzaSyCmAD_-O3-kQ57mJhA18s_-mAST9U1_pfk") 
+GEMINI_API_KEY = os.getenv("AIzaSyAUp3OSvPWvwR7DWFHcsiJTLlbznvpxsv8") 
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash") # Cloud par tez model
 # ----------------------------------------
 
