@@ -4,13 +4,6 @@ import os
 import urllib.parse
 from pathlib import Path
 
-# --- NOW Import other modules ---
-# Ensure these files exist in your project structure
-from utils import extract_text_from_file, save_edited_resume, load_json, save_json
-from model import get_job_matches, analyze_with_jd, get_recommendations
-from chatbot_rag import get_rag_response, initialize_interview 
-# ------------------------------
-
 # -------------------- PAGE CONFIG (MUST BE FIRST ST COMMAND) --------------------
 st.set_page_config(
     page_title="Progeni - Smart Resume Analyzer",
@@ -19,8 +12,15 @@ st.set_page_config(
 )
 # --------------------------------------------------------------------------------
 
+# --- NOW Import other modules ---
+# Ensure these files are clean and present
+from utils import extract_text_from_file, save_edited_resume, load_json, save_json
+from model import get_job_matches, analyze_with_jd, get_recommendations
+from chatbot_rag import get_rag_response, initialize_interview
+# ------------------------------
+
+
 # --- GOOGLE SEARCH CONSOLE VERIFICATION ---
-# Replace with your actual verification code
 google_verification_tag = """
 <meta name="google-site-verification" content="KOI_NAYA_SA_CODE_YAHAN_HOGA" />
 """
@@ -102,15 +102,13 @@ tab1, tab2 = st.tabs(["📊 Resume Analyzer", "🤖 AI Mock Interview"])
 with tab1:
     uploaded_resume_analyzer = st.file_uploader("📄 **Upload your Resume** (PDF, DOCX, or TXT)", type=["pdf", "docx", "txt"], key="resume_uploader_tab1")
 
-    # Initialize specific_jd_text to None at the start of the tab
     specific_jd_text = None
 
     if uploaded_resume_analyzer:
         with st.spinner("Analyzing your resume... Please wait."):
             resume_text = extract_text_from_file(uploaded_resume_analyzer)
-            job_matches = get_job_matches(resume_text) # Reads data_resume/jobs.json
+            job_matches = get_job_matches(resume_text)
 
-            # Store resume text in session state for the interview tab
             st.session_state.resume_text_for_interview = resume_text
 
             if not job_matches:
@@ -122,7 +120,6 @@ with tab1:
             top_match_title = top_match.get('title', 'N/A')
             top_match_description = top_match.get('description', '')
 
-            # Analyze against the top match for General ATS score
             score, overlap, suggestions, missing_keywords = analyze_with_jd(resume_text, top_match_description)
             recommendations = get_recommendations(missing_keywords)
 
@@ -228,13 +225,13 @@ with tab1:
                 # Handle re-analysis button click
                 if reanalyze:
                     with st.spinner("Reanalyzing edited resume..."):
-                        current_edited_text = st.session_state.resume_editor_area # Access text via key
+                        current_edited_text = st.session_state.resume_editor_area
                         new_score, new_overlap, new_suggestions, new_missing = analyze_with_jd(current_edited_text, specific_jd_text)
                     st.success(f"✅ New Match Score (Edited): **{new_score*100:.2f}%**")
                     st.progress(int(new_score * 100))
 
                 # Handle download buttons (use text from session state)
-                current_edited_text_for_download = st.session_state.get("resume_editor_area", resume_text) # Fallback to original
+                current_edited_text_for_download = st.session_state.get("resume_editor_area", resume_text)
 
                 if download_docx:
                     file_path_docx = save_edited_resume(current_edited_text_for_download, format="docx")
@@ -276,13 +273,13 @@ with tab2:
     # Check if resume text is available from Tab 1
     if 'resume_text_for_interview' not in st.session_state or not st.session_state.resume_text_for_interview:
         st.warning("Please upload your resume in the 'Resume Analyzer' tab first to start the interview.")
-        st.stop() # Stop execution of this tab if no resume
+        st.stop()
 
     # Initialize chat history for the interview if it doesn't exist
     if "interview_messages" not in st.session_state:
         st.session_state.interview_messages = []
 
-    # Start interview only if history is empty (first time visiting tab after resume upload)
+    # Start interview only if history is empty
     if not st.session_state.interview_messages:
         # Add a placeholder while the first question is generated
         st.session_state.interview_messages.append({"role": "assistant", "content": "Initializing interview..."})
@@ -327,8 +324,7 @@ with tab2:
                      message_placeholder.markdown(ai_response) # Update placeholder with response
                      # Add AI response to history
                      st.session_state.interview_messages.append({"role": "assistant", "content": ai_response})
-                     # Rerun to clear the input box and update display cleanly
-                     st.rerun()
+                     st.rerun() # Rerun to clear the input box and update display cleanly
                 else:
                      message_placeholder.error("AI failed to generate a response.")
                      st.session_state.interview_messages.append({"role": "assistant", "content": "Sorry, I couldn't generate a response."})
