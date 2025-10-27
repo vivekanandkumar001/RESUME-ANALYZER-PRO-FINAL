@@ -24,7 +24,7 @@ python-telegram-bot>=20.0
 
 # --- General Dependencies ---
 SQLAlchemy
-=======
+
 # --- Streamlit App & Core AI ---
 streamlit
 sentence-transformers>=2.7.0
