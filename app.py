@@ -4,6 +4,13 @@ import os
 import urllib.parse
 from pathlib import Path
 
+# --- NOW Import other modules ---
+# Ensure these files are clean and present
+from utils import extract_text_from_file, save_edited_resume, load_json, save_json
+from model import get_job_matches, analyze_with_jd, get_recommendations
+from chatbot_rag import get_rag_response, initialize_interview 
+# ------------------------------
+
 # -------------------- PAGE CONFIG (MUST BE FIRST ST COMMAND) --------------------
 st.set_page_config(
     page_title="Progeni - Smart Resume Analyzer",
@@ -12,14 +19,8 @@ st.set_page_config(
 )
 # --------------------------------------------------------------------------------
 
-# --- NOW Import other modules ---
-from utils import extract_text_from_file, save_edited_resume, load_json, save_json
-from model import get_job_matches, analyze_with_jd, get_recommendations
-from chatbot_rag import get_rag_response, initialize_interview
-# ------------------------------
-
-
 # --- GOOGLE SEARCH CONSOLE VERIFICATION ---
+# Replace with your actual verification code
 google_verification_tag = """
 <meta name="google-site-verification" content="KOI_NAYA_SA_CODE_YAHAN_HOGA" />
 """
@@ -34,7 +35,7 @@ st.markdown(
     body {
         background: linear-gradient(135deg, #0f0c29 0%, #302b63 70%, #24243e 100%);
         background-attachment: fixed;
-        color: #d1d1d1;
+        color: #d1d1d1; /* Soft light grey text */
         font-family: 'Segoe UI', 'Roboto', sans-serif;
     }
     /* Main app container */
@@ -102,13 +103,26 @@ with tab1:
     uploaded_resume_analyzer = st.file_uploader("📄 **Upload your Resume** (PDF, DOCX, or TXT)", type=["pdf", "docx", "txt"], key="resume_uploader_tab1")
 
     specific_jd_text = None
+    
+    # Initialize flag for interview readiness
+    if 'resume_ready' not in st.session_state:
+        st.session_state.resume_ready = False
 
     if uploaded_resume_analyzer:
         with st.spinner("Analyzing your resume... Please wait."):
             resume_text = extract_text_from_file(uploaded_resume_analyzer)
+            
+            # --- VALIDATION CHECK (Crucial for interview start) ---
+            if not resume_text or len(resume_text.strip()) < 50:
+                 st.error("Could not read enough text from the resume (file might be image-based or empty). Please check file format.")
+                 st.session_state.resume_ready = False # Set flag to False if validation fails
+                 st.stop()
+
             job_matches = get_job_matches(resume_text) # Reads data_resume/jobs.json
 
+            # Store resume text and set flag to True
             st.session_state.resume_text_for_interview = resume_text
+            st.session_state.resume_ready = True # Set flag to True only on successful read
 
             if not job_matches:
                 st.error("Error: Could not load job data. The 'data_resume/jobs.json' file might be empty or missing. Please ensure `scraper.py` ran successfully and generated the file.")
@@ -269,9 +283,9 @@ with tab1:
 with tab2:
     st.write("## 🤖 AI Mock Interview")
 
-    # Check if resume text is available from Tab 1
-    if 'resume_text_for_interview' not in st.session_state or not st.session_state.resume_text_for_interview:
-        st.warning("Please upload your resume in the 'Resume Analyzer' tab first to start the interview.")
+    # Check if resume text is available AND VALID from Tab 1
+    if not st.session_state.get('resume_ready', False):
+        st.warning("Please upload a valid, readable resume in the 'Resume Analyzer' tab first to start the interview.")
         st.stop()
 
     # Initialize chat history for the interview if it doesn't exist
@@ -283,19 +297,21 @@ with tab2:
         # Add a placeholder while the first question is generated
         st.session_state.interview_messages.append({"role": "assistant", "content": "Initializing interview..."})
         try:
-            # Call the initialization function from chatbot_rag in the background
-            first_ai_message = initialize_interview(st.session_state.resume_text_for_interview)
+            # Call the initialization function from chatbot_rag
+            resume_text = st.session_state.resume_text_for_interview
+            first_ai_message = initialize_interview(resume_text)
+            
             if first_ai_message:
                 # Replace placeholder with actual first message
                 st.session_state.interview_messages[0] = {"role": "assistant", "content": first_ai_message}
                 st.rerun()
             else:
-                st.session_state.interview_messages[0] = {"role": "assistant", "content": "Error: Could not start interview. AI failed to generate the first question."}
+                st.session_state.interview_messages[0] = {"role": "assistant", "content": "Error: AI failed to generate the first question (Empty Response)."}
                 st.error("Could not start interview. AI failed to generate the first question.")
         except Exception as e:
-            error_msg = f"Error starting interview. Is Ollama running and model '{os.getenv('OLLAMA_MODEL', 'llama3')}' pulled? Details: {e}"
-            st.session_state.interview_messages[0] = {"role": "assistant", "content": f"Error: {error_msg}"}
-            st.error(error_msg)
+            # This handles errors from load_llm_model (missing key)
+            st.error(f"Error starting interview. Please check your GitHub Secrets for the GEMINI_API_KEY. Details: {e}")
+            st.stop()
 
 
     # Display chat messages from history
@@ -317,7 +333,7 @@ with tab2:
             message_placeholder.markdown("Thinking...")
             try:
                 # Get response from chatbot logic
-                ai_response = get_rag_response(user_prompt_for_ai, "Candidate") # Using RAG function which calls Ollama
+                ai_response = get_rag_response(user_prompt_for_ai, "Candidate")
 
                 if ai_response:
                      message_placeholder.markdown(ai_response) # Update placeholder with response
@@ -329,7 +345,7 @@ with tab2:
                      st.session_state.interview_messages.append({"role": "assistant", "content": "Sorry, I couldn't generate a response."})
 
             except Exception as e:
-                error_msg = f"Error getting response. Is Ollama running? Details: {e}"
+                error_msg = f"Error getting response: {e}"
                 print(error_msg)
                 message_placeholder.error(error_msg)
                 st.session_state.interview_messages.append({"role": "assistant", "content": "Sorry, an error occurred while getting the response."})
