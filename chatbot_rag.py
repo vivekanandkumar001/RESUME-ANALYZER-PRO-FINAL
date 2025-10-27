@@ -1,156 +1,66 @@
-
 # chatbot_rag.py
-# --- NAYE IMPORTS ---
-from chatbot_config import INTERVIEWER_SYSTEM_PROMPT, GEMINI_MODEL, GEMINI_API_KEY
-from langchain_google_genai import ChatGoogleGenerativeAI 
-from langchain_core.messages import HumanMessage, SystemMessage 
-# --------------------
+from chatbot_config import INTERVIEWER_SYSTEM_PROMPT, GEMINI_MODEL
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import HumanMessage, SystemMessage
+# Ollama and langchain_community imports are NOT needed when using Gemini
+# from langchain_community.llms import Ollama 
 import streamlit as st
 import os
 
-# --- Initialize LLM LAZILY (Gemini) ---
+# --- Initialize LLM LAZILY (Gemini ONLY) ---
 @st.cache_resource
 def load_llm_model():
-    """Gemini model load karta hai."""
-    if not GEMINI_API_KEY:
+    """Loads the Gemini model, prioritizing st.secrets."""
+    # st.secrets.get() is the standard way to retrieve secrets in Streamlit Cloud
+    gemini_key = st.secrets.get("GEMINI_API_KEY")
+
+    if not gemini_key:
+        # Display the specific error that the UI showed you
         st.error("❌ Gemini API Key not found. Please set 'GEMINI_API_KEY' in Streamlit Secrets.")
         return None
+    
+    # We ignore Ollama entirely here since it will fail on Cloud
     try:
         llm_instance = ChatGoogleGenerativeAI(
             model=GEMINI_MODEL,
-            api_key=GEMINI_API_KEY,
+            api_key=gemini_key, # Use the key from st.secrets
             temperature=0.6 
         )
         print("✅ Gemini Model initialized successfully.")
         return llm_instance
     except Exception as e:
-        error_message = (
-            f"❌ Failed to initialize Gemini model. "
-            f"Please check your API key and network. Error: {e}"
-        )
-        print(error_message) 
-        st.error(error_message)
+        error_message = f"❌ Failed to initialize Gemini model. Error: {e}"
+        print(error_message)
+        st.error(f"FATAL: Gemini failed to load. Check API key validity. Error: {e}")
         return None
 
-# --- Interview Initialization ---
+# --- Interview Initialization (rest remains the same) ---
 def initialize_interview(resume_text: str) -> str | None:
-    """Pehla interview question generate karta hai."""
-    llm = load_llm_model() 
-    if not llm:
-        return None
+    llm = load_llm_model()
+    if not llm: return None
+    is_chat_model = hasattr(llm, 'invoke') and 'Chat' in str(type(llm))
 
-    # System Prompt ko format karein
     system_prompt_content = INTERVIEWER_SYSTEM_PROMPT.format(resume_text=resume_text)
     
-    messages = [
-        SystemMessage(content=system_prompt_content)
-    ]
-    
     try:
-        print("Generating initial interview question (via Gemini)...")
-        # LLM ko invoke karein
+        print("Generating initial interview question...")
+        messages = [SystemMessage(content=system_prompt_content)]
         response = llm.invoke(messages)
-        print("Initial question generated.")
         return response.content.strip() if response and response.content else "Hello! Could you start by telling me a bit about yourself?"
     except Exception as e:
         print(f"Error generating initial question: {e}")
-        st.error(f"Error communicating with Gemini: {e}")
+        st.error(f"Error communicating with AI: {e}")
         return None
 
-# --- Get AI Response during Interview ---
+# --- Get AI Response during Interview (rest remains the same) ---
 def get_rag_response(user_query: str, user_name: str = "Candidate") -> str:
-    """Next question/response lata hai."""
     llm = load_llm_model()
-    if not llm:
-        return "Error: AI model is currently unavailable." 
+    if not llm: return "Error: AI model is currently unavailable."
 
-    # For now, we only pass the latest query. 
-    # A robust system would pass the full history (all st.session_state.interview_messages).
-    
     try:
-        # Simple invocation
         response = llm.invoke([HumanMessage(content=user_query)])
-        return response.content.strip() if response and response.content else "Okay, interesting. Could you please elaborate on that?"
+        return response.content.strip() if response and response.content else "Okay, interesting. Could you please elaborate?"
     except Exception as e:
-        error_message = f"Error getting Gemini response: {e}"
-        print(error_message)
-        st.error(f"Error communicating with Gemini: {e}")
-
-# chatbot_rag.py
-# --- NAYE IMPORTS ---
-from chatbot_config import INTERVIEWER_SYSTEM_PROMPT, GEMINI_MODEL, GEMINI_API_KEY
-from langchain_google_genai import ChatGoogleGenerativeAI 
-from langchain_core.messages import HumanMessage, SystemMessage 
-# --------------------
-import streamlit as st
-import os
-
-# --- Initialize LLM LAZILY (Gemini) ---
-@st.cache_resource
-def load_llm_model():
-    """Gemini model load karta hai."""
-    if not GEMINI_API_KEY:
-        st.error("❌ Gemini API Key not found. Please set 'GEMINI_API_KEY' in Streamlit Secrets.")
-        return None
-    try:
-        llm_instance = ChatGoogleGenerativeAI(
-            model=GEMINI_MODEL,
-            api_key=GEMINI_API_KEY,
-            temperature=0.6 
-        )
-        print("✅ Gemini Model initialized successfully.")
-        return llm_instance
-    except Exception as e:
-        error_message = (
-            f"❌ Failed to initialize Gemini model. "
-            f"Please check your API key and network. Error: {e}"
-        )
-        print(error_message) 
-        st.error(error_message)
-        return None
-
-# --- Interview Initialization ---
-def initialize_interview(resume_text: str) -> str | None:
-    """Pehla interview question generate karta hai."""
-    llm = load_llm_model() 
-    if not llm:
-        return None
-
-    # System Prompt ko format karein
-    system_prompt_content = INTERVIEWER_SYSTEM_PROMPT.format(resume_text=resume_text)
-    
-    messages = [
-        SystemMessage(content=system_prompt_content)
-    ]
-    
-    try:
-        print("Generating initial interview question (via Gemini)...")
-        # LLM ko invoke karein
-        response = llm.invoke(messages)
-        print("Initial question generated.")
-        return response.content.strip() if response and response.content else "Hello! Could you start by telling me a bit about yourself?"
-    except Exception as e:
-        print(f"Error generating initial question: {e}")
-        st.error(f"Error communicating with Gemini: {e}")
-        return None
-
-# --- Get AI Response during Interview ---
-def get_rag_response(user_query: str, user_name: str = "Candidate") -> str:
-    """Next question/response lata hai."""
-    llm = load_llm_model()
-    if not llm:
-        return "Error: AI model is currently unavailable." 
-
-    # For now, we only pass the latest query. 
-    # A robust system would pass the full history (all st.session_state.interview_messages).
-    
-    try:
-        # Simple invocation
-        response = llm.invoke([HumanMessage(content=user_query)])
-        return response.content.strip() if response and response.content else "Okay, interesting. Could you please elaborate on that?"
-    except Exception as e:
-        error_message = f"Error getting Gemini response: {e}"
-        print(error_message)
-        st.error(f"Error communicating with Gemini: {e}")
-
+        print(f"Error getting AI response: {e}")
+        st.error(f"Error communicating with AI: {e}")
         return "Sorry, I encountered an error trying to get a response. Please try again."
