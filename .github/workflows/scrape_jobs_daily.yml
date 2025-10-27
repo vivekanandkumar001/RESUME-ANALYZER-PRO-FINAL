@@ -1,0 +1,85 @@
+name: Scrape Jobs & Notify Users Daily
+
+on:
+  schedule:
+    # Runs daily at 00:00 UTC (5:30 AM IST)
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  scrape_and_notify:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Needed for git push
+
+    # 2. Setup Python
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # 3. Install ALL dependencies (Scraper + Notifier + Model)
+    #    Notifier needs model.py to calculate matches
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Install everything needed by both scraper and notifier
+        pip install -r requirements.txt
+
+    # 4. Run Scraper
+    - name: Run scraper
+      run: |
+        echo "Running daily scraper..."
+        # Run scraper.py; continue even if it fails
+        python scraper.py || echo "Scraper exited with non-zero status but continuing"
+
+    # 5. Run Notifier (Uses the newly scraped jobs.json)
+    - name: Run notifier (Send notifications if new matches)
+      # Pass secrets as environment variables to the script
+      env:
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT }}
+        SMTP_USER: ${{ secrets.SMTP_USER }}
+        SMTP_PASS: ${{ secrets.SMTP_PASS }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+        TWILIO_WHATSAPP_FROM: ${{ secrets.TWILIO_WHATSAPP_FROM }}
+        # --- NAYA: Ollama model ko load karne ke liye ---
+        # Cache directory ko action mein mount karna taaki model baar baar download na ho (optional advanced)
+        # Agar model nahi milta hai toh notify_matches fail ho sakta hai. Ensure model exists.
+        # SENTENCE_TRANSFORMERS_HOME: cache # Example cache path if needed
+      run: |
+        echo "Running notifier..."
+        # Run notify_matches.py; continue even if it fails
+        python notify_matches.py || echo "Notifier exited with non-zero status"
+
+    # 6. Commit and Push (Only if jobs.json changed by scraper)
+    - name: Commit and push if jobs.json changed
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+        # Check if jobs.json file exists and has content
+        if [ -s "data_resume/jobs.json" ]; then
+          git add data_resume/jobs.json
+        else
+          echo "⚠️ data_resume/jobs.json file not found or empty! Cannot commit."
+          # Exit cleanly if file not found/empty
+          exit 0
+        fi
+
+        # Commit only if there are staged changes
+        if git diff --staged --quiet; then
+          echo "✅ No changes detected in jobs.json by scraper"
+        else
+          git commit -m "🤖 Automated job scrape update ($(date '+%Y-%m-%d %H:%M:%S'))"
+          # Push changes back to the main branch
+          # Retry push a couple of times if it fails initially
+          git push origin main || (sleep 5 && git push origin main) || echo "⚠️ Push failed after retries"
+        fi

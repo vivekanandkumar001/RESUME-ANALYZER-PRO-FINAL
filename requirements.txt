@@ -1,7 +1,26 @@
+# Streamlit App & Resume Analyzer
 streamlit
-sentence-transformers
+sentence-transformers>=2.7.0
 torch
 PyPDF2
 docx2txt
 python-docx
 fpdf
+requests
+beautifulsoup4 # Needed by some scrapers, keep for now
+
+# Chatbot (RAG + Ollama)
+langchain>=0.2.0
+langchain-community>=0.2.0
+langchain-text-splitters>=0.2.0
+chromadb>=0.5.0
+ollama>=0.2.0
+SQLAlchemy # For leads database (optional)
+PyYAML
+
+# Notifications
+python-dotenv>=1.0.0
+twilio>=8.0.0
+python-telegram-bot>=20.0 # Used implicitly by requests in notify.py
+
+# File handling / utils

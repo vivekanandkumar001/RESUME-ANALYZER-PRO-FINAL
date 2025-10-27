@@ -1,0 +1,57 @@
+[
+  {
+    "course": "Python Programming",
+    "duration": "2 months",
+    "overview": "Covers fundamentals of Python, data types, functions, OOP, file handling, error handling, and libraries like NumPy and Pandas.",
+    "outcomes": [
+      "Write efficient Python code",
+      "Understand OOP concepts",
+      "Work with real-world libraries like NumPy & Pandas",
+      "Build small projects and scripts"
+    ]
+  },
+  {
+    "course": "Data Science",
+    "duration": "4 months",
+    "overview": "Comprehensive program on data cleaning, data analysis, visualization, and machine learning with Python. Includes hands-on projects.",
+    "outcomes": [
+      "Perform data preprocessing and analysis",
+      "Visualize data with Matplotlib & Seaborn",
+      "Apply machine learning models",
+      "Work with real datasets"
+    ]
+  },
+  {
+    "course": "Machine Learning",
+    "duration": "3 months",
+    "overview": "Focused training on supervised and unsupervised learning, model evaluation, and optimization techniques.",
+    "outcomes": [
+      "Understand regression and classification models",
+      "Apply clustering techniques",
+      "Evaluate and tune models",
+      "Implement ML pipelines"
+    ]
+  },
+  {
+    "course": "Artificial Intelligence (AI)",
+    "duration": "3 months",
+    "overview": "Introduction to AI concepts, search algorithms, expert systems, and neural networks. Includes real-world applications.",
+    "outcomes": [
+      "Understand core AI concepts",
+      "Build basic AI systems",
+      "Apply search algorithms",
+      "Work with simple neural networks"
+    ]
+  },
+  {
+    "course": "Generative AI",
+    "duration": "2 months",
+    "overview": "Hands-on training with Generative AI models like GPT, diffusion models, and transformers. Includes prompt engineering.",
+    "outcomes": [
+      "Understand generative models",
+      "Learn prompt engineering",
+      "Generate text and images with AI",
+      "Apply GenAI in real-world scenarios"
+    ]
+  }
+]

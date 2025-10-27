@@ -1,0 +1,13 @@
+{
+  "id": "alice",
+  "name": "Alice Gupta",
+  "email": "your_test_email@example.com",
+  "telegram_chat_id": "YOUR_TELEGRAM_CHAT_ID",
+  "whatsapp_number": "+91XXXXXXXXXX",
+  "notify_email": true,
+  "notify_telegram": true,
+  "notify_whatsapp": false,
+  "match_threshold": 0.65,
+  "resume_text": "Experienced Python developer with skills in Django, Flask, AWS, and SQL. Developed REST APIs and worked on cloud deployments. Familiar with Agile methodologies and Git version control.",
+  "last_notified_job_ids": []
+}

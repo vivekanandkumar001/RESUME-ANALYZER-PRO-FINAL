@@ -1,0 +1,13 @@
+{
+  "id": "bob",
+  "name": "Bob Sharma",
+  "email": "bob_test@example.com",
+  "telegram_chat_id": "YOUR_BOB_TELEGRAM_CHAT_ID",
+  "whatsapp_number": "+91YYYYYYYYYY",
+  "notify_email": false,
+  "notify_telegram": true,
+  "notify_whatsapp": true,
+  "match_threshold": 0.75,
+  "resume_text": "Data Scientist with 2 years of experience. Proficient in Python, R, SQL, Machine Learning (Scikit-learn, TensorFlow), and Data Visualization (Tableau). Experience building predictive models and deploying them using AWS SageMaker.",
+  "last_notified_job_ids": []
+}
