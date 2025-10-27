@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 from sentence_transformers import SentenceTransformer, util
 import json
 import os
@@ -113,7 +113,7 @@ def get_recommendations(missing_keywords):
     
     return mapped
 # ------------------------
-=======
+
 from sentence_transformers import SentenceTransformer, util
 import json
 import os
@@ -187,6 +187,4 @@ def get_course_suggestions(missing_keywords):
             if skill == keyword and skill not in found_skills:
                 mapped.append(f"For **{skill}**: {course}")
                 found_skills.add(skill)
-    
     return mapped
->>>>>>> 1513229e212edae69176b12f7d1ef905a471d922
