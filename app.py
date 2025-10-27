@@ -116,8 +116,8 @@ with tab1:
             if not resume_text or len(resume_text.strip()) < 50:
                  st.error("Could not read enough text from the resume (file might be image-based or empty). Please check file format.")
                  st.session_state.resume_ready = False # Set flag to False if validation fails
-                 st.stop()
-
+                 st.stop() # Stop execution after error display
+            
             job_matches = get_job_matches(resume_text) # Reads data_resume/jobs.json
 
             # Store resume text and set flag to True
