@@ -17,12 +17,11 @@ def extract_text_from_file(file):
             text = ""
             for page in reader.pages:
                 page_text = page.extract_text()
-                if page_text: # Append only if text is extracted
-                     text += page_text + "\n" # Add newline between pages
-            return text.strip() # Remove leading/trailing whitespace
+                if page_text:
+                     text += page_text + "\n"
+            return text.strip()
 
         elif file.name.endswith(".docx"):
-            # Use a temporary file path
             temp_path = f"temp_{int(time.time())}_{os.getpid()}.docx"
             try:
                 with open(temp_path, "wb") as f:
@@ -30,11 +29,10 @@ def extract_text_from_file(file):
                 text = docx2txt.process(temp_path)
             finally:
                 if os.path.exists(temp_path):
-                    os.remove(temp_path) # Clean up temp file
+                    os.remove(temp_path)
             return text.strip()
 
         elif file.name.endswith(".txt"):
-            # Try common encodings
             try:
                 file.seek(0)
                 return file.read().decode("utf-8").strip()
@@ -52,7 +50,7 @@ def extract_text_from_file(file):
         print(f"Error extracting text from {getattr(file, 'name', 'file')}: {e}")
         return ""
 
-    return "" # Fallback
+    return ""
 
 def save_edited_resume(text, format="docx"):
     """Saves the provided text as a DOCX or PDF file in an 'uploads' directory."""
@@ -76,9 +74,10 @@ def save_edited_resume(text, format="docx"):
                 pdf.set_font("Arial", size=12)
             except RuntimeError:
                 print("Warning: Arial font not found. Using default.")
-                pdf.set_font("Helvetica", size=12) # Fallback
-
+                pdf.set_font("Helvetica", size=12)
+            
             pdf_text = str(text) if text is not None else ""
+            # FPDF PDF Encoding Fix: using latin-1 with replacement for broader compatibility
             pdf.multi_cell(0, 10, pdf_text.encode('latin-1', 'replace').decode('latin-1'))
             pdf.output(path)
         else:
