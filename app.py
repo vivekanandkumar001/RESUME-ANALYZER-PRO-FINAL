@@ -12,7 +12,7 @@ st.set_page_config(
 )
 # --------------------------------------------------------------------------------
 
-# --- NOW Import other modules (Ensuring clean imports) ---
+# --- NOW Import other modules ---
 from utils import extract_text_from_file, save_edited_resume, load_json, save_json
 from model import get_job_matches, analyze_with_jd, get_recommendations
 from chatbot_rag import get_rag_response, initialize_interview
