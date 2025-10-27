@@ -12,8 +12,7 @@ st.set_page_config(
 )
 # --------------------------------------------------------------------------------
 
-# --- NOW Import other modules ---
-# Ensure these files are clean and present
+# --- NOW Import other modules (Ensuring clean imports) ---
 from utils import extract_text_from_file, save_edited_resume, load_json, save_json
 from model import get_job_matches, analyze_with_jd, get_recommendations
 from chatbot_rag import get_rag_response, initialize_interview
@@ -35,7 +34,7 @@ st.markdown(
     body {
         background: linear-gradient(135deg, #0f0c29 0%, #302b63 70%, #24243e 100%);
         background-attachment: fixed;
-        color: #d1d1d1; /* Soft light grey text */
+        color: #d1d1d1;
         font-family: 'Segoe UI', 'Roboto', sans-serif;
     }
     /* Main app container */
@@ -107,7 +106,7 @@ with tab1:
     if uploaded_resume_analyzer:
         with st.spinner("Analyzing your resume... Please wait."):
             resume_text = extract_text_from_file(uploaded_resume_analyzer)
-            job_matches = get_job_matches(resume_text)
+            job_matches = get_job_matches(resume_text) # Reads data_resume/jobs.json
 
             st.session_state.resume_text_for_interview = resume_text
 
