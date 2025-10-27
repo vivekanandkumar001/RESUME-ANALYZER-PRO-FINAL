@@ -1,69 +1,57 @@
 # chatbot_rag.py
-from chatbot_config import OLLAMA_MODEL, INTERVIEWER_SYSTEM_PROMPT, GEMINI_MODEL, GEMINI_API_KEY
-from langchain_google_genai import ChatGoogleGenerativeAI # New Import
-from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_community.llms import Ollama # Kept for local fallback context
+from chatbot_config import INTERVIEWER_SYSTEM_PROMPT, GEMINI_MODEL
+from langchain_google_genai import ChatGoogleGenerativeAI 
+from langchain_core.messages import HumanMessage, SystemMessage 
 import streamlit as st
 import os
 
-# --- Initialize LLM LAZILY (Gemini Priority) ---
+# --- Initialize LLM LAZILY (Gemini ONLY) ---
 @st.cache_resource
 def load_llm_model():
-    print(f"Attempting to load AI model (Gemini: {GEMINI_MODEL} / Ollama: {OLLAMA_MODEL})...")
-    
-    # 1. Try Gemini (Cloud deployment preferred)
-    if GEMINI_API_KEY and GEMINI_API_KEY != "YOUR_ACTUAL_GEMINI_API_KEY_HERE":
-        try:
-            llm_instance = ChatGoogleGenerativeAI(
-                model=GEMINI_MODEL,
-                api_key=GEMINI_API_KEY,
-                temperature=0.6 
-            )
-            print("✅ Gemini Model initialized successfully.")
-            return llm_instance
-        except Exception as e:
-            print(f"❌ Gemini initialization failed: {e}")
-            # Fall through to check for local Ollama
+    """Loads the Gemini model, prioritizing st.secrets."""
+    # st.secrets.get() is the standard way to retrieve secrets in Streamlit Cloud
+    # This will look for GEMINI_API_KEY inside the st.toml file or GitHub Secrets
+    gemini_key = st.secrets.get("GEMINI_API_KEY")
 
-    # 2. Try Ollama (Local/Dev fallback)
+    if not gemini_key:
+        # Display the specific error that the UI showed you
+        st.error("❌ Gemini API Key not found. Please set 'GEMINI_API_KEY' in Streamlit Secrets.")
+        return None
+    
     try:
-        # If running locally, this should work (assumes Ollama is running)
-        ollama_llm = Ollama(model=OLLAMA_MODEL)
-        # Quick check: if local connection fails, don't return it
-        # ollama_llm.invoke("test") # Test is too slow for cache, assume connection is okay
-        print(f"✅ Ollama Model ({OLLAMA_MODEL}) initialized successfully.")
-        return ollama_llm
+        llm_instance = ChatGoogleGenerativeAI(
+            model=GEMINI_MODEL,
+            api_key=gemini_key, # Use the key from st.secrets
+            temperature=0.6 
+        )
+        print("✅ Gemini Model initialized successfully.")
+        return llm_instance
     except Exception as e:
-        error_message = f"❌ Neither Gemini nor Ollama could be initialized. Error: {e}"
+        error_message = (
+            f"❌ FATAL: Failed to initialize Gemini model. "
+            f"Check API key validity. Error: {e}"
+        )
         print(error_message)
-        st.error(f"FATAL: {error_message}")
+        st.error(error_message)
         return None
 
 # --- Interview Initialization ---
 def initialize_interview(resume_text: str) -> str | None:
     llm = load_llm_model()
     if not llm: return None
-
-    # Determine if the model is a ChatModel (Gemini) or LLM (Ollama)
-    is_chat_model = hasattr(llm, 'invoke') and 'Chat' in str(type(llm))
-
+    
+    # System Prompt ko format karein
     system_prompt_content = INTERVIEWER_SYSTEM_PROMPT.format(resume_text=resume_text)
+    
+    messages = [
+        SystemMessage(content=system_prompt_content)
+    ]
     
     try:
         print("Generating initial interview question...")
-        
-        if is_chat_model:
-            # For Gemini (ChatModel)
-            messages = [SystemMessage(content=system_prompt_content)]
-            response = llm.invoke(messages)
-            result = response.content
-        else:
-            # For Ollama (LLM) - send the prompt directly
-            response = llm.invoke(system_prompt_content)
-            result = response
-
+        response = llm.invoke(messages)
         print("Initial question generated.")
-        return result.strip() if result and result.strip() else "Hello! Could you start by telling me a bit about yourself?"
+        return response.content.strip() if response and response.content else "Hello! Could you start by telling me a bit about yourself?"
     except Exception as e:
         print(f"Error generating initial question: {e}")
         st.error(f"Error communicating with AI: {e}")
@@ -74,24 +62,12 @@ def get_rag_response(user_query: str, user_name: str = "Candidate") -> str:
     llm = load_llm_model()
     if not llm: return "Error: AI model is currently unavailable."
 
-    is_chat_model = hasattr(llm, 'invoke') and 'Chat' in str(type(llm))
-    
     try:
-        print(f"Sending user query: {user_query[:50]}...")
-        
-        if is_chat_model:
-            # For Gemini (ChatModel)
-            messages = [HumanMessage(content=user_query)]
-            response = llm.invoke(messages)
-            result = response.content
-        else:
-            # For Ollama (LLM)
-            response = llm.invoke(user_query)
-            result = response
-
-        print("Received response from AI.")
-        return result.strip() if result and result.strip() else "Okay, interesting. Could you please elaborate?"
+        # Simple invocation - relies on model managing short-term conversation context
+        response = llm.invoke([HumanMessage(content=user_query)])
+        return response.content.strip() if response and response.content else "Okay, interesting. Could you please elaborate?"
     except Exception as e:
-        print(f"Error getting AI response: {e}")
+        error_message = f"Error getting AI response: {e}"
+        print(error_message)
         st.error(f"Error communicating with AI: {e}")
         return "Sorry, I encountered an error trying to get a response. Please try again."
