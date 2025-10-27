@@ -1,35 +1,26 @@
-
-
+# --- Streamlit App & Core AI ---
 streamlit
 sentence-transformers>=2.7.0
-=======
-streamlit
-sentence-transformers
-
 torch
 PyPDF2
 docx2txt
 python-docx
-
 fpdf
 requests
-beautifulsoup4 # Needed by some scrapers, keep for now
+beautifulsoup4
 
-# Chatbot (RAG + Ollama)
+# --- LangChain/Ollama Chatbot ---
 langchain>=0.2.0
 langchain-community>=0.2.0
 langchain-text-splitters>=0.2.0
 chromadb>=0.5.0
 ollama>=0.2.0
-SQLAlchemy # For leads database (optional)
-PyYAML
 
-# Notifications
+# --- Notifications & Utilities ---
 python-dotenv>=1.0.0
 twilio>=8.0.0
-python-telegram-bot>=20.0 # Used implicitly by requests in notify.py
+python-telegram-bot>=20.0
 
-# File handling / utils
-=======
-fpdf
-
+# --- General Dependencies ---
+SQLAlchemy
+PyYAML
